@@ -73,7 +73,7 @@ const formatContextType = (type: any) => {
     return 'string | number'
   }
   if (type.type === 'BOOLEAN') {
-    return 'number'
+    return 'boolean'
   }
   if (type.type === 'SELECT') {
     return formatVariations(type.options.map((option: any) => option.value))

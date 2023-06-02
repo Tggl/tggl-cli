@@ -6,9 +6,9 @@ import axios, { AxiosError } from 'axios'
 
 program.name('tggl').version('1.0.0')
 
-const template = `import { TgglFlags, TgglContext } from 'tggl-client'
+const template = `import { TgglFlags, TgglContext } from '<PACKAGE_NAME>'
 
-declare module 'tggl-client' {
+declare module '<PACKAGE_NAME>' {
   export interface TgglContext {
     <CONTEXT>
   }
@@ -93,6 +93,11 @@ program
     process.env.TGGL_API_KEY
   )
   .requiredOption('-o, --output <file>', 'File to write the typing to')
+  .requiredOption(
+    '-p, --package <package>',
+    'Name of the package to declare types for',
+    'tggl-client'
+  )
   .action(async (options) => {
     try {
       const response = await axios({
@@ -125,6 +130,7 @@ program
                 )
                 .join('\n$1')
           )
+          .replace(/<PACKAGE_NAME>/g, options.package)
       )
     } catch (error) {
       // @ts-ignore

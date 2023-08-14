@@ -95,6 +95,11 @@ program
   )
   .requiredOption('-o, --output <file>', 'File to write the typing to')
   .requiredOption(
+    '-h, --skip-hidden',
+    'Skip hidden properties in context',
+    false
+  )
+  .requiredOption(
     '-p, --package <package>',
     'Name of the package to declare types for',
     'tggl-client'
@@ -130,8 +135,14 @@ program
             /( *)<CONTEXT>/,
             '$1' +
               Object.entries(context)
+                .filter(([_, type]) => {
+                  return options.skipHidden ? !(type as any).hidden : true
+                })
                 .map(
-                  ([key, type]) => `${key}: ${formatContextType(type as any)}`
+                  ([key, type]) =>
+                    `${key}${
+                      (type as any).hidden ? '?' : ''
+                    }: ${formatContextType(type as any)}`
                 )
                 .join('\n$1')
           )

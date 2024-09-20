@@ -3,6 +3,7 @@
 import { program } from 'commander'
 import fs from 'fs/promises'
 import axios, { AxiosError } from 'axios'
+import { formatVariations } from './formatVariations'
 
 program.name('tggl').version('1.0.0')
 
@@ -29,36 +30,6 @@ export interface TgglContext {
 export interface TgglFlags {
   <FLAGS>
 }`
-
-class TsType {
-  constructor(public name: string) {}
-}
-
-const formatVariations = (variations: any[]) => {
-  if (variations.includes(true) && variations.includes(false)) {
-    variations = variations.filter(
-      (variation) => typeof variation !== 'boolean'
-    )
-    variations.push(new TsType('boolean'))
-  }
-
-  const arrays = variations.filter((variation) =>
-    Array.isArray(variation)
-  ) as any[][]
-
-  if (arrays.length) {
-    variations = variations.filter((variation) => !Array.isArray(variation))
-    variations.push(new TsType(`Array<${formatVariations(arrays.flat())}>`))
-  }
-
-  return [
-    ...new Set(
-      variations.map((variation) =>
-        variation instanceof TsType ? variation.name : JSON.stringify(variation)
-      )
-    ),
-  ].join(' | ')
-}
 
 const formatContextType = (type: any) => {
   if (['STRING', 'VERSION'].includes(type.type)) {
@@ -126,6 +97,7 @@ program
             /( *)<FLAGS>/,
             '$1' +
               Object.entries(flags)
+                .sort((a, b) => a[0].localeCompare(b[0]))
                 .map(
                   ([key, type]) => `${key}: ${formatVariations(type as any[])}`
                 )
@@ -135,6 +107,7 @@ program
             /( *)<CONTEXT>/,
             '$1' +
               Object.entries(context)
+                .sort((a, b) => a[0].localeCompare(b[0]))
                 .filter(([_, type]) => {
                   return options.skipHidden ? !(type as any).hidden : true
                 })
